@@ -1,11 +1,11 @@
 {
   "name": "角色好感工作台",
-  "short_name": "好感工作台",
-  "description": "RPG角色好感度管理工具，本地存储记录角色事件与好感变化",
-  "start_url": "./index.html",
+  "short_name": "好感工具",
+  "description": "RPG角色好感度管理，角色详情、事件日志、数据本地存储备份",
+  "start_url": "./",
   "display": "standalone",
-  "background_color": "#ffffff",
-  "theme_color": "#6366f1",
+  "background_color": "#f7f3ec",
+  "theme_color": "#73b8e8",
   "orientation": "portrait-primary",
   "icons": [
     {
