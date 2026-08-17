@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>角色好感工作台</title>
+    <!-- PWA 配置 -->
+    <link rel="manifest" href="data:application/json;base64,eyJuYW1lIjoi5L2c5Z6G5aKe5oWV57Ww5Zyw57ufIiwic2hvcnRfbmFtZSI6IuW8oOaYjiIsInN0YXJ0X3VybCI6Ii4iLCJkaXNwbGF5Ijoic3RhbmRhbG9uZSIsImJhY2tncm91bmRfY29sb3IiOiIjZjdmM2VjIiwidGhlbWVfY29sb3IiOiIjNzNiOGU4IiwiaWNvbnMiOlt7InNyYyI6ImRhdGE6aW1hZ2Uvc3ZnK3htbCw8c3ZnIHhtbG5zPSdodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2Zycgdmlld0JveD0nMCAwIDEwMCAxMDAnPjxyZWN0IHdpZHRoPScxMDAnIGhlaWdodD0nMTAwJyByeD0nMjAnIGZpbGw9JyM3M2I4ZTgnLz48dGV4dCB4PSc1MCcgeT0nNTUnIGZvbnQtc2l6ZT0nNDAnIGZpbGw9J3doaXRlJyB0ZXh0LWFuY2hvcj0nbWlkZGxlJyBkb21pbmFudC1iYXNlbGluZT0nbWlkZGxlJz7lsI7miY48L3RleHQ+PC9zdmc+Iiwic2l6ZXMiOiIxOTJ4MTkyIiwidHlwZSI6ImltYWdlL3N2Zyt4bWwifV19">
+    <meta name="theme-color" content="#73b8e8">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        }
+        body {
+            background-color: #f7f3ec; /* 暖米白底 */
+            color: #333842;
+            padding-bottom: 80px;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 720px;
+            margin: 0 auto;
+            padding: 16px;
+        }
+        /* 玻璃拟态卡片 */
+        .glass-card {
+            background: rgba(255,255,255,0.65);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-radius: 16px;
+            border: 1px solid rgba(255,255,255,0.85);
+            box-shadow: 0 4px 14px rgba(120,140,170,0.08);
+            padding: 18px;
+            margin-bottom:14px;
+        }
+        h2 {
+            font-size:20px;
+            margin-bottom:12px;
+            color:#2c323d;
+        }
+        h3{
+            font-size:17px;
+            margin-bottom:10px;
+            color:#333842;
+        }
+        /* 好感等级标签 */
+        .level-tag{
+            display:inline-block;
+            font-size:12px;
+            padding:2px 8px;
+            border-radius:12px;
+            margin-left:8px;
+        }
+        .level-0{background:#e2e2e2;color:#444;}
+        .level-1{background:#e6eaf4;color:#2c3e66;}
+        .level-2{background:#c6e3f5;color:#1b4b72;}
+        .level-3{background:#b8e8dd;color:#14594e;}
+        .level-4{background:#e2d4f7;color:#482b70;}
+        .level-5{background:#f9d7e8;color:#702b4c;}
+
+        /* 按钮配色 */
+        .btn-primary {
+            background-color:#73b8e8; /*冰蓝主色*/
+            color:#fff;
+            border:none;
+            border-radius:10px;
+            padding:9px 14px;
+            cursor:pointer;
+            font-size:15px;
+        }
+        .btn-plus {
+            background:#96ddcb; /*薄荷青*/
+            color:#1f3834;
+            border:none;
+            border-radius:8px;
+            padding:6px 12px;
+            font-size:16px;
+        }
+        .btn-minus {
+            background:#d4c8ee; /*淡紫点缀*/
+            color:#352b49;
+            border:none;
+            border-radius:8px;
+            padding:6px 12px;
+            font-size:16px;
+        }
+        .btn-danger {
+            background:#ee9c9c;
+            border:none;
+            border-radius:10px;
+            padding:9px 14px;
+            color:#601c1c;
+        }
+        input,textarea {
+            border:1px solid #d8d2c9;
+            border-radius:9px;
+            padding:8px 10px;
+            font-size:15px;
+            background:rgba(255,255,255,0.7);
+            width:100%;
+        }
+        .row-item {
+            display:flex;
+            gap:10px;
+            align-items:center;
+            margin:8px 0;
+            flex-wrap:wrap;
+        }
+        /* 底部导航 */
+        .tab-bar {
+            position:fixed;
+            bottom:0;
+            left:0;
+            width:100%;
+            background:rgba(255,255,255,0.72);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            display:flex;
+            border-top:1px solid #e8e2d8;
+        }
+        .tab-item {
+            flex:1;
+            text-align:center;
+            padding:12px 4px;
+            font-size:13px;
+            cursor:pointer;
+            color:#707886;
+        }
+        .tab-item.active {
+            color:#428fc9;
+            font-weight:500;
+        }
+        /* 页面切换 */
+        .page {
+            display:none;
+        }
+        .page.active {
+            display:block;
+        }
+        .log-item {
+            font-size:13px;
+            padding:8px 0;
+            border-bottom:1px solid #ece8e0;
+            color:#444954;
+        }
+        .log-note{
+            font-size:12px;
+            color:#666;
+            margin-top:3px;
+            padding-left:10px;
+        }
+        .pop-mask{
+            position:fixed;
+            inset:0;
+            background:rgba(0,0,0,0.35);
+            display:none;
+            align-items:center;
+            justify-content:center;
+            z-index:99;
+            padding:16px;
+        }
+        .pop-mask.show{display:flex;}
+        .pop-box{
+            width:100%;
+            max-width:420px;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <!--页面1：好感总览-->
+    <div id="page-home" class="page active">
+        <h2>好感总览工作台</h2>
+        <div class="glass-card" id="favor-list"></div>
+    </div>
+
+    <!--页面2：角色详情页-->
+    <div id="page-detail" class="page">
+        <h2>角色详情</h2>
+        <div class="glass-card">
+            <div class="row-item">
+                <span>选中角色：</span>
+                <span id="detail-name"></span>
+            </div>
+            <div class="row-item">
+                <span>当前好感：</span>
+                <span id="detail-value"></span>
+                <span id="detail-level" class="level-tag"></span>
+            </div>
+        </div>
+        <div class="glass-card">
+            <h3>该角色事件日志</h3>
+            <div id="detail-log"></div>
+        </div>
+    </div>
+
+    <!--页面3：全局事件日志页-->
+    <div id="page-log" class="page">
+        <h2>全部好感变动历史</h2>
+        <div class="glass-card" id="global-log"></div>
+    </div>
+
+    <!--页面4：设置页-->
+    <div id="page-setting" class="page">
+        <h2>设置</h2>
+        <div class="glass-card">
+            <div class="row-item">
+                <label>调节步长：</label>
+                <input id="step-input" type="number" value="5">
+            </div>
+            <div class="row-item">
+                <button class="btn-primary" onclick="saveStep()">保存步长</button>
+            </div>
+        </div>
+        <div class="glass-card">
+            <h3>备份与恢复</h3>
+            <div class="row-item">
+                <button class="btn-primary" onclick="exportData()">导出备份JSON</button>
+            </div>
+            <div class="row-item">
+                <input type="file" id="import-file" accept=".json" onchange="importBackup(this)">
+            </div>
+        </div>
+        <div class="glass-card">
+            <h3>PWA桌面安装</h3>
+            <div class="row-item">
+                <button class="btn-primary" id="installBtn" onclick="pwaInstall()">添加到手机桌面</button>
+            </div>
+            <div style="font-size:12px;color:#666">安卓Chrome可直接安装；Safari需要分享→添加到主屏幕</div>
+        </div>
+        <div class="glass-card">
+            <div class="row-item">
+                <button class="btn-danger" onclick="resetAllData()">重置全部数据</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!--弹窗：修改好感+填写事件备注-->
+<div class="pop-mask" id="popNote">
+    <div class="pop-box glass-card">
+        <h3>好感变动，填写事件备注</h3>
+        <div class="row-item">
+            <span>角色：<span id="pop‑charname"></span></span>
+        </div>
+        <div class="row-item">
+            <span>变动数值：<span id="pop‑delta"></span></span>
+        </div>
+        <textarea id="pop‑note" placeholder="记录发生了什么剧情、事件（选填）"></textarea>
+        <div class="row-item" style="margin-top:12px;">
+            <button class="btn-primary" onclick="confirmFavorChange()">确认保存</button>
+            <button class="btn-danger" onclick="closePop()">取消</button>
+        </div>
+    </div>
+</div>
+
+<!--底部标签导航-->
+<div class="tab-bar">
+    <div class="tab-item active" data-page="page-home">总览</div>
+    <div class="tab-item" data-page="page-detail">角色详情</div>
+    <div class="tab-item" data-page="page-log">事件日志</div>
+    <div class="tab-item" data-page="page-setting">设置</div>
+</div>
+
+<script>
+//好感等级规则
+function getFavorLevel(val){
+    if(val <=0) return {text:"陌生",cls:"level-0"};
+    if(val <=20) return {text:"初识",cls:"level-1"};
+    if(val <=50) return {text:"友好",cls:"level-2"};
+    if(val <=80) return {text:"亲近",cls:"level-3"};
+    if(val <=120) return {text:"知己",cls:"level-4"};
+    return {text:"倾心",cls:"level-5"};
+}
+
+// 默认初始化数据
+let defaultData = {
+    step:5,
+    characters:[
+        {id:0,name:"角色A",favor:0},
+        {id:1,name:"角色B",favor:0},
+        {id:2,name:"角色C",favor:0},
+        {id:3,name:"角色D",favor:0},
+        {id:4,name:"角色E",favor:0},
+        {id:5,name:"角色F",favor:0},
+        {id:6,name:"角色G",favor:0},
+        {id:7,name:"角色H",favor:0},
+    ],
+    logs:[],
+    selectCharId:0
+}
+
+//弹窗临时缓存
+let popCache = {charId:0,delta:0};
+
+// 读取本地存储
+function loadStorage(){
+    let str = localStorage.getItem("favor_workspace");
+    if(str){
+        return JSON.parse(str);
+    }else{
+        return JSON.parse(JSON.stringify(defaultData));
+    }
+}
+let appData = loadStorage();
+
+//保存本地存储
+function saveStorage(){
+    localStorage.setItem("favor_workspace",JSON.stringify(appData));
+}
+
+// 添加日志（支持备注）
+function addLog(charId, delta, desc=""){
+    let char = appData.characters[charId];
+    let time = new Date().toLocaleString();
+    let logItem = {
+        time,
+        charId,
+        charName:char.name,
+        delta,
+        desc,
+        afterValue:char.favor
+    }
+    appData.logs.unshift(logItem);
+    saveStorage();
+}
+
+//渲染总览列表
+function renderHome(){
+    let dom = document.getElementById("favor-list");
+    let html = "";
+    appData.characters.forEach((c,idx)=>{
+        let lv = getFavorLevel(c.favor);
+        html += `
+        <div class="row-item">
+            <input value="${c.name}" onchange="changeName(${idx},this.value)" style="width:110px;">
+            <span>好感：${c.favor}</span>
+            <span class="level-tag ${lv.cls}">${lv.text}</span>
+            <button class="btn-minus" onclick="openNotePop(${idx},-appData.step)">−</button>
+            <button class="btn-plus" onclick="openNotePop(${idx},appData.step)">+</button>
+            <button class="btn-primary" onclick="openDetail(${idx})">详情</button>
+        </div>
+        `
+    })
+    dom.innerHTML = html;
+}
+
+// 修改角色名字
+function changeName(id,newName){
+    appData.characters[id].name = newName;
+    saveStorage();
+    renderHome();
+}
+
+//打开备注弹窗
+function openNotePop(charId,delta){
+    popCache.charId = charId;
+    popCache.delta = delta;
+    const c = appData.characters[charId];
+    document.getElementById("pop‑charname").innerText = c.name;
+    document.getElementById("pop‑delta").innerText = delta>0?`+${delta}`:delta;
+    document.getElementById("pop‑note").value = "";
+    document.getElementById("popNote").classList.add("show");
+}
+function closePop(){
+    document.getElementById("popNote").classList.remove("show");
+}
+//确认好感变更
+function confirmFavorChange(){
+    const note = document.getElementById("pop‑note").value.trim();
+    const {charId,delta}=popCache;
+    appData.characters[charId].favor += delta;
+    addLog(charId,delta,note);
+    closePop();
+    renderHome();
+    renderLogPage();
+    if(appData.selectCharId === charId){
+        renderDetail();
+    }
+}
+
+//打开角色详情
+function openDetail(id){
+    appData.selectCharId = id;
+    saveStorage();
+    renderDetail();
+    switchPage("page-detail");
+}
+
+//渲染详情页
+function renderDetail(){
+    let c = appData.characters[appData.selectCharId];
+    let lv = getFavorLevel(c.favor);
+    document.getElementById("detail-name").innerText = c.name;
+    document.getElementById("detail-value").innerText = c.favor;
+    document.getElementById("detail-level").innerText = lv.text;
+    document.getElementById("detail-level").className = "level-tag "+lv.cls;
+
+    let detailLogDom = document.getElementById("detail-log");
+    let filterLog = appData.logs.filter(l=>l.charId === appData.selectCharId);
+    let h = "";
+    filterLog.forEach(l=>{
+        h += `<div class="log-item">[${l.time}] ${l.delta>0?"+"+l.delta:l.delta} → ${l.afterValue}
+        ${l.desc?`<div class="log-note">📝${l.desc}</div>`:""}
+        </div>`
+    })
+    detailLogDom.innerHTML = h || "<div style='color:#888'>暂无记录</div>";
+}
+
+//渲染全局日志页面
+function renderLogPage(){
+    let dom = document.getElementById("global-log");
+    let h = "";
+    appData.logs.forEach(l=>{
+        h += `<div class="log-item">[${l.time}]【${l.charName}】 ${l.delta>0?"+"+l.delta:l.delta}，当前：${l.afterValue}
+        ${l.desc?`<div class="log-note">📝${l.desc}</div>`:""}
+        </div>`
+    })
+    dom.innerHTML = h || "<div style='color:#888'>暂无事件记录</div>";
+}
+
+//设置页步长
+function saveStep(){
+    let v = Number(document.getElementById("step-input").value);
+    appData.step = v;
+    saveStorage();
+    alert("步长已保存");
+}
+
+//导出数据
+function exportData(){
+    let blob = new Blob([JSON.stringify(appData,null,2)],{type:"application/json"});
+    let url = URL.createObjectURL(blob);
+    let a = document.createElement('a');
+    a.href = url;
+    a.download = "好感工作台备份.json";
+    a.click();
+}
+
+//导入备份文件
+function importBackup(inputEl){
+    const file = inputEl.files[0];
+    if(!file) return;
+    const reader = new FileReader();
+    reader.onload=e=>{
+        try{
+            const restore = JSON.parse(e.target.result);
+            if(!restore.characters || !restore.logs){
+                alert("备份文件格式错误！");
+                return;
+            }
+            if(!confirm("导入将覆盖当前全部数据！确认继续？")) return;
+            appData = restore;
+            saveStorage();
+            renderAll();
+            alert("导入备份成功");
+        }catch(err){
+            alert("读取JSON失败");
+        }
+    }
+    reader.readAsText(file);
+}
+
+//重置全部数据
+function resetAllData(){
+    if(!confirm("确认清空所有角色、好感、日志？不可恢复！")) return;
+    localStorage.removeItem("favor_workspace");
+    appData = JSON.parse(JSON.stringify(defaultData));
+    saveStorage();
+    renderAll();
+}
+
+//页面切换
+function switchPage(pageId){
+    document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
+    document.getElementById(pageId).classList.add("active");
+    document.querySelectorAll(".tab-item").forEach(t=>t.classList.remove("active"));
+    document.querySelector(`.tab-item[data-page="${pageId}"]`).classList.add("active");
+}
+
+//底部tab绑定点击
+document.querySelectorAll(".tab-item").forEach(tab=>{
+    tab.onclick = function(){
+        let pid = this.getAttribute("data-page");
+        switchPage(pid);
+        if(pid === "page-log") renderLogPage();
+        if(pid === "page-setting"){
+            document.getElementById("step-input").value = appData.step;
+        }
+    }
+})
+
+// ---------------- PWA安装逻辑 ----------------
+let deferredPrompt = null;
+window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+    document.getElementById("installBtn").style.display="block";
+});
+async function pwaInstall(){
+    if(!deferredPrompt){
+        alert("当前浏览器不支持一键安装；Safari请点分享按钮→添加到主屏幕");
+        return;
+    }
+    deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+    deferredPrompt = null;
+    alert(outcome==="accepted"?"已添加桌面":"取消安装");
+}
+
+function renderAll(){
+    renderHome();
+    renderLogPage();
+    renderDetail();
+    document.getElementById("step-input").value = appData.step;
+}
+
+//初始化
+renderAll();
+</script>
+</body>
+</html>
