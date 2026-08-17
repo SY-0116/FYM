@@ -1,10 +1,10 @@
 const CACHE_NAME = "favor‑tool‑v2";
 // 需要离线缓存的资源
 const CACHE_FILES = [
-    "./index.html",
-    "./manifest.json",
-    "./icon‑192.png",
-    "./icon‑512.png"
+    "index.html",
+    "manifest.json",
+    "icon‑192.png",
+    "icon‑512.png"
 ];
 
 // 安装阶段：缓存资源
