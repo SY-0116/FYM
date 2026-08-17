@@ -1,288 +1,352 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-    <link rel="manifest" href="./manifest.json">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="theme-color" content="#73b8e8">
-    <title>角色好感工作台</title>
-</head>
-    <!-- PWA 配置 -->
-    <link rel="manifest" href="data:application/json;charset=utf-8,
-{
-  "name": "角色好感工作台",
-  "short_name": "好感工具",
-  "description": "RPG角色好感度管理，角色详情、事件日志、数据本地存储备份",
-  "start_url": "./",
-  "display": "standalone",
-  "background_color": "#f7f3ec",
-  "theme_color": "#73b8e8",
-  "orientation": "portrait-primary",
-  "icons": [
-    {
-      "src": "./icon‑192.png",
-      "sizes": "192x192",
-      "type": "image/png"
-    },
-    {
-      "src": "./icon‑512.png",
-      "sizes": "512x512",
-      "type": "image/png"
-    }
-  ]
-}
-    <meta name="theme-color" content="#73b8e8">
+    <title>好感工具</title>
+    <link rel="manifest" href="./manifest.json">
+    <meta name="theme-color" content="#87cefa">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        *{box-sizing:border-box;margin:0;padding:0;font-family:system-ui,-apple-system,sans-serif;}
+        body{
+            background:#f7f3ec; /* 暖米白底 */
+            color:#333842;     /*正文文字色*/
+            padding:12px;
+            max-width:1000px;
+            margin:0 auto;
         }
-        body {
-            background-color: #f7f3ec; /* 暖米白底 */
-            color: #333842;
-            padding-bottom: 80px;
-            min-height: 100vh;
-        }
-        .container {
-            max-width: 720px;
-            margin: 0 auto;
-            padding: 16px;
-        }
-        /* 玻璃拟态卡片 */
-        .glass-card {
-            background: rgba(255,255,255,0.65);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            border-radius: 16px;
-            border: 1px solid rgba(255,255,255,0.85);
-            box-shadow: 0 4px 14px rgba(120,140,170,0.08);
-            padding: 18px;
-            margin-bottom:14px;
-        }
-        h2 {
-            font-size:20px;
-            margin-bottom:12px;
-            color:#2c323d;
-        }
-        h3{
-            font-size:17px;
-            margin-bottom:10px;
-            color:#333842;
-        }
-        /* 好感等级标签 */
-        .level-tag{
-            display:inline-block;
-            font-size:12px;
-            padding:2px 8px;
-            border-radius:12px;
-            margin-left:8px;
-        }
-        .level-0{background:#e2e2e2;color:#444;}
-        .level-1{background:#e6eaf4;color:#2c3e66;}
-        .level-2{background:#c6e3f5;color:#1b4b72;}
-        .level-3{background:#b8e8dd;color:#14594e;}
-        .level-4{background:#e2d4f7;color:#482b70;}
-        .level-5{background:#f9d7e8;color:#702b4c;}
+        .page{display:none;}
+        .page.active{display:block;}
 
-        /* 按钮配色 */
-        .btn-primary {
-            background-color:#73b8e8; /*冰蓝主色*/
-            color:#fff;
+        nav{display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap;}
+        /* 冰蓝主按钮 */
+        nav button{
+            padding:11px 16px;
             border:none;
-            border-radius:10px;
-            padding:9px 14px;
+            background:#87cefa;
+            color:#222832;
+            border-radius:12px;
+            font-size:14px;
             cursor:pointer;
-            font-size:15px;
+            box-shadow: 0 2px 8px rgba(135,206,250,0.25);
+            transition:0.2s ease;
         }
-        .btn-plus {
-            background:#96ddcb; /*薄荷青*/
-            color:#1f3834;
-            border:none;
-            border-radius:8px;
-            padding:6px 12px;
-            font-size:16px;
+        nav button:hover{
+            background:#70b9e6;
+            transform: translateY(-1px);
         }
-        .btn-minus {
-            background:#d4c8ee; /*淡紫点缀*/
-            color:#352b49;
-            border:none;
-            border-radius:8px;
-            padding:6px 12px;
-            font-size:16px;
-        }
-        .btn-danger {
-            background:#ee9c9c;
-            border:none;
-            border-radius:10px;
-            padding:9px 14px;
-            color:#601c1c;
-        }
-        input,textarea {
-            border:1px solid #d8d2c9;
-            border-radius:9px;
-            padding:8px 10px;
-            font-size:15px;
-            background:rgba(255,255,255,0.7);
-            width:100%;
-        }
-        .row-item {
-            display:flex;
-            gap:10px;
-            align-items:center;
-            margin:8px 0;
-            flex-wrap:wrap;
-        }
-        /* 底部导航 */
-        .tab-bar {
-            position:fixed;
-            bottom:0;
-            left:0;
-            width:100%;
-            background:rgba(255,255,255,0.72);
+
+        /* =====玻璃拟态卡片===== */
+        .card{
+            background:rgba(255,255,255,0.45);
             backdrop-filter: blur(12px);
             -webkit-backdrop-filter: blur(12px);
-            display:flex;
-            border-top:1px solid #e8e2d8;
+            border:1px solid rgba(255,255,255,0.65);
+            border-radius:18px;
+            padding:20px;
+            margin-bottom:14px;
+            box-shadow: 0 4px 16px rgba(51,56,66,0.08);
         }
-        .tab-item {
-            flex:1;
-            text-align:center;
-            padding:12px 4px;
-            font-size:13px;
-            cursor:pointer;
-            color:#707886;
+
+        .row{display:flex;align-items:center;gap:10px;margin:10px 0;flex-wrap:wrap;}
+
+        input{
+            padding:9px 11px;
+            border:1px solid #d8d2c8;
+            border-radius:10px;
+            font-size:14px;
+            background:rgba(255,255,255,0.6);
+            color:#333842;
         }
-        .tab-item.active {
-            color:#428fc9;
-            font-weight:500;
-        }
-        /* 页面切换 */
-        .page {
-            display:none;
-        }
-        .page.active {
-            display:block;
-        }
-        .log-item {
-            font-size:13px;
-            padding:8px 0;
-            border-bottom:1px solid #ece8e0;
-            color:#444954;
-        }
-        .log-note{
-            font-size:12px;
-            color:#666;
-            margin-top:3px;
-            padding-left:10px;
-        }
-        .pop-mask{
-            position:fixed;
-            inset:0;
-            background:rgba(0,0,0,0.35);
-            display:none;
-            align-items:center;
-            justify-content:center;
-            z-index:99;
-            padding:16px;
-        }
-        .pop-mask.show{display:flex;}
-        .pop-box{
+        textarea{
             width:100%;
-            max-width:420px;
+            min-height:130px;
+            padding:12px;
+            border:1px solid #d8d2c8;
+            border-radius:12px;
+            font-size:14px;
+            background:rgba(255,255,255,0.6);
+            color:#333842;
         }
+
+        /* 小按钮组：冰蓝 / 薄荷青 /淡紫 */
+        button.small{
+            padding:7px 12px;
+            border:none;
+            border-radius:10px;
+            cursor:pointer;
+            font-size:13.5px;
+            transition:0.2s;
+        }
+        button.small:nth-of-type(1){background:#87cefa;color:#222832;} /*冰蓝*/
+        button.small:nth-of-type(2){background:#b2e8d8;color:#222832;} /*薄荷青*/
+        button.small:nth-of-type(3){background:#d8cff2;color:#222832;} /*淡紫*/
+        button.small:hover{filter:brightness(1.05);transform: translateY(-1px);}
+
+        .log-item{
+            padding:10px 0;
+            border-bottom:1px solid rgba(51,56,66,0.1);
+            font-size:13px;
+            line-height:1.55;
+        }
+        h1,h3,h4{
+            color:#333842;
+            margin-bottom:12px;
+        }
+        p{font-size:12px;color:#5c626e;}
     </style>
 </head>
 <body>
-<div class="container">
-    <!--页面1：好感总览-->
+    <h1>好感工作台</h1>
+    <nav>
+        <button data-page="page-home">角色总览</button>
+        <button data-page="page-detail">角色详情</button>
+        <button data-page="page-log">全部事件日志</button>
+        <button data-page="page-setting">设置</button>
+    </nav>
+
+    <!-- 角色总览页 -->
     <div id="page-home" class="page active">
-        <h2>好感总览工作台</h2>
-        <div class="glass-card" id="favor-list"></div>
+        <div class="card">
+            <h3>角色好感列表</h3>
+            <div id="charList"></div>
+        </div>
     </div>
 
-    <!--页面2：角色详情页-->
+    <!-- 角色详情页 -->
     <div id="page-detail" class="page">
-        <h2>角色详情</h2>
-        <div class="glass-card">
-            <div class="row-item">
-                <span>选中角色：</span>
-                <span id="detail-name"></span>
+        <div class="card">
+            <h3>角色详情</h3>
+            <div class="row">
+                <label>选择角色:</label>
+                <select id="detailSelect">
+                </select>
             </div>
-            <div class="row-item">
+            <div class="row">
                 <span>当前好感：</span>
-                <span id="detail-value"></span>
-                <span id="detail-level" class="level-tag"></span>
+                <input type="number" id="detailVal">
+                <button class="small" id="btnAdd">+</button>
+                <button class="small" id="btnSub">-</button>
+                <span>步长：<input type="number" id="stepInput" value="1"></span>
             </div>
-        </div>
-        <div class="glass-card">
-            <h3>该角色事件日志</h3>
-            <div id="detail-log"></div>
+            <div class="row">
+                <label>本次变动事件记录：</label>
+            </div>
+            <textarea id="eventNote" placeholder="记录发生了什么剧情事件"></textarea>
+            <div class="row">
+                <button class="small" id="saveChange">保存本次变动</button>
+            </div>
+            <h4 style="margin-top:14px;">该角色历史记录</h4>
+            <div id="charLogBox"></div>
         </div>
     </div>
 
-    <!--页面3：全局事件日志页-->
+    <!-- 全部事件日志页 -->
     <div id="page-log" class="page">
-        <h2>全部好感变动历史</h2>
-        <div class="glass-card" id="global-log"></div>
+        <div class="card">
+            <h3>全局全部好感变动日志</h3>
+            <div id="allLogBox"></div>
+        </div>
     </div>
 
-    <!--页面4：设置页-->
+    <!-- 设置页 -->
     <div id="page-setting" class="page">
-        <h2>设置</h2>
-        <div class="glass-card">
-            <div class="row-item">
-                <label>调节步长：</label>
-                <input id="step-input" type="number" value="5">
+        <div class="card">
+            <h3>设置</h3>
+            <div class="row">
+                <button class="small" id="exportData">导出全部数据(JSON)</button>
+                <button class="small" id="resetAll">重置全部数据</button>
             </div>
-            <div class="row-item">
-                <button class="btn-primary" onclick="saveStep()">保存步长</button>
-            </div>
-        </div>
-        <div class="glass-card">
-            <h3>备份与恢复</h3>
-            <div class="row-item">
-                <button class="btn-primary" onclick="exportData()">导出备份JSON</button>
-            </div>
-            <div class="row-item">
-                <input type="file" id="import-file" accept=".json" onchange="importBackup(this)">
-            </div>
-        </div>
-        <div class="glass-card">
-            <h3>PWA桌面安装</h3>
-            <div class="row-item">
-                <button class="btn-primary" id="installBtn" onclick="pwaInstall()">添加到手机桌面</button>
-            </div>
-            <div style="font-size:12px;color:#666">安卓Chrome可直接安装；Safari需要分享→添加到主屏幕</div>
-        </div>
-        <div class="glass-card">
-            <div class="row-item">
-                <button class="btn-danger" onclick="resetAllData()">重置全部数据</button>
-            </div>
+            <p style="font-size:12px;color:#5c626e;margin-top:10px;">数据保存在浏览器本地存储，清除浏览器缓存会丢失。</p>
         </div>
     </div>
-</div>
 
-<!--弹窗：修改好感+填写事件备注-->
-<div class="pop-mask" id="popNote">
-    <div class="pop-box glass-card">
-        <h3>好感变动，填写事件备注</h3>
-        <div class="row-item">
-            <span>角色：<span id="pop‑charname"></span></span>
-        </div>
-        <div class="row-item">
-            <span>变动数值：<span id="pop‑delta"></span></span>
-        </div>
-        <textarea id="pop‑note" placeholder="记录发生了什么剧情、事件（选填）"></textarea>
-        <div class="row-item" style="margin-top:12px;">
-            <button class="btn-primary" onclick="confirmFavorChange()">确认保存</button>
-            <button class="btn-danger" onclick="closePop()">取消</button>
-        </div>
-    </div>
-</div>
+<script>
+// 默认8角色初始数据
+const DEFAULT_DATA = {
+    step:1,
+    chars:[
+        {id:1,name:"角色A",favor:50},
+        {id:2,name:"角色B",favor:50},
+        {id:3,name:"角色C",favor:50},
+        {id:4,name:"角色D",favor:50},
+        {id:5,name:"角色E",favor:50},
+        {id:6,name:"角色F",favor:50},
+        {id:7,name:"角色G",favor:50},
+        {id:8,name:"角色H",favor:50},
+    ],
+    logs:[]
+};
 
-<!--底部标签导航-->
+let appData = JSON.parse(localStorage.getItem("favorToolData")) || JSON.parse(JSON.stringify(DEFAULT_DATA));
+
+// 保存本地存储
+function saveStorage(){
+    localStorage.setItem("favorToolData",JSON.stringify(appData));
+}
+
+// 页面切换
+document.querySelectorAll("nav button").forEach(btn=>{
+    btn.onclick=()=>{
+        const targetId = btn.dataset.page;
+        document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
+        document.getElementById(targetId).classList.add("active");
+        renderPage();
+    }
+})
+
+// 渲染全部页面
+function renderPage(){
+    renderHome();
+    renderDetailSelect();
+    renderAllLog();
+}
+
+// 首页角色列表
+function renderHome(){
+    const box = document.getElementById("charList");
+    box.innerHTML = "";
+    appData.chars.forEach((c,idx)=>{
+        const div = document.createElement("div");
+        div.className = "row";
+        div.innerHTML = `
+            <span>${c.name}</span>
+            <input value="${c.name}" data-idx="${idx}" class="editName">
+            <span>好感：${c.favor}</span>
+        `
+        box.appendChild(div);
+    })
+    //修改名字
+    document.querySelectorAll(".editName").forEach(input=>{
+        input.onchange=()=>{
+            const i = Number(input.dataset.idx);
+            appData.chars[i].name = input.value.trim();
+            saveStorage();
+            renderPage();
+        }
+    })
+}
+
+//详情页下拉选择
+function renderDetailSelect(){
+    const sel = document.getElementById("detailSelect");
+    sel.innerHTML = "";
+    appData.chars.forEach((c,idx)=>{
+        const opt = document.createElement("option");
+        opt.value = idx;
+        opt.innerText = c.name;
+        sel.appendChild(opt);
+    })
+    bindDetail();
+}
+
+//详情页绑定
+function bindDetail(){
+    const idx = Number(document.getElementById("detailSelect").value);
+    const char = appData.chars[idx];
+    document.getElementById("detailVal").value = char.favor;
+    document.getElementById("stepInput").value = appData.step;
+    renderCharLog(idx);
+}
+
+//渲染单个角色日志
+function renderCharLog(charIdx){
+    const char = appData.chars[charIdx];
+    const box = document.getElementById("charLogBox");
+    const list = appData.logs.filter(l=>l.charId===char.id);
+    box.innerHTML = list.length===0?"暂无记录":list.map(item=>`
+        <div class="log-item">
+            <div>${item.time}｜好感变动 ${item.delta} → 当前${item.afterVal}</div>
+            <div>备注：${item.note||"无"}</div>
+        </div>
+    `).join("");
+}
+
+//渲染全局日志
+function renderAllLog(){
+    const box = document.getElementById("allLogBox");
+    box.innerHTML = appData.logs.length===0?"暂无事件日志":appData.logs.map(item=>`
+        <div class="log-item">
+            <div>${item.time}｜【${item.charName}】变动 ${item.delta} → ${item.afterVal}</div>
+            <div>备注：${item.note||"无"}</div>
+        </div>
+    `).join("");
+}
+
+//详情页事件
+document.getElementById("detailSelect").onchange = bindDetail;
+
+document.getElementById("btnAdd").onclick=()=>{
+    const idx = Number(document.getElementById("detailSelect").value);
+    const step = Number(document.getElementById("stepInput").value)||1;
+    const char = appData.chars[idx];
+    char.favor += step;
+    document.getElementById("detailVal").value = char.favor;
+}
+document.getElementById("btnSub").onclick=()=>{
+    const idx = Number(document.getElementById("detailSelect").value);
+    const step = Number(document.getElementById("stepInput").value)||1;
+    const char = appData.chars[idx];
+    char.favor -= step;
+    document.getElementById("detailVal").value = char.favor;
+}
+
+//保存变动写入日志
+document.getElementById("saveChange").onclick = ()=>{
+    const idx = Number(document.getElementById("detailSelect").value);
+    const char = appData.chars[idx];
+    const newVal = Number(document.getElementById("detailVal").value);
+    const note = document.getElementById("eventNote").value.trim();
+    const delta = newVal - char.favor;
+    char.favor = newVal;
+    appData.step = Number(document.getElementById("stepInput").value)||1;
+
+    const logItem = {
+        charId:char.id,
+        charName:char.name,
+        beforeVal:char.favor-delta,
+        afterVal:char.favor,
+        delta:delta,
+        note:note,
+        time:new Date().toLocaleString()
+    }
+    appData.logs.push(logItem);
+    saveStorage();
+    document.getElementById("eventNote").value = "";
+    renderPage();
+}
+
+//导出数据
+document.getElementById("exportData").onclick=()=>{
+    const str = JSON.stringify(appData,null,2);
+    const blob = new Blob([str],{type:"application/json"});
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "好感工作台数据.json";
+    a.click();
+}
+
+//重置全部
+document.getElementById("resetAll").onclick=()=>{
+    if(confirm("确定全部清空？所有角色、日志全部丢失，不可恢复！")){
+        appData = JSON.parse(JSON.stringify(DEFAULT_DATA));
+        saveStorage();
+        renderPage();
+    }
+}
+
+//初始化渲染
+renderPage();
+
+//PWA ServiceWorker注册
+if('serviceWorker' in navigator){
+    window.addEventListener("load",()=>{
+        navigator.serviceWorker.register("./sw.js").catch(err=>console.log("sw注册失败：",err))
+    })
+}
+</script>
+</body>
+</html>
 <div class="tab-bar">
     <div class="tab-item active" data-page="page-home">总览</div>
     <div class="tab-item" data-page="page-detail">角色详情</div>
